@@ -204,6 +204,7 @@
   <script>
     let regularNumber = parseInt(localStorage.getItem("regularNumber")) || 0;
     let priorityNumber = parseInt(localStorage.getItem("priorityNumber")) || 0;
+    let notificationSound = new Audio('sounds/notification.mp3');
     
     document.getElementById("regularNumber").textContent = regularNumber;
     document.getElementById("priorityNumber").textContent = priorityNumber;
@@ -213,11 +214,21 @@
         regularNumber++;
         localStorage.setItem("regularNumber", regularNumber);
         document.getElementById("regularNumber").textContent = regularNumber;
+        playNotification();
       } else {
         priorityNumber++;
         localStorage.setItem("priorityNumber", priorityNumber);
         document.getElementById("priorityNumber").textContent = priorityNumber;
+        playNotification();
       }
+    }
+
+    function playNotification() {
+      // Create a new Audio instance each time to ensure it plays even when called in rapid succession
+      let sound = new Audio('sounds/notification.mp3');
+      sound.play().catch(error => {
+        console.error("Error playing notification sound:", error);
+      });
     }
 
     function previousNumber(type) {

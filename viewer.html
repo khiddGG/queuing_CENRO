@@ -168,6 +168,8 @@
     function updateQueueNumbers() {
       const regularNumber = localStorage.getItem("regularNumber") || 0;
       const priorityNumber = localStorage.getItem("priorityNumber") || 0;
+      const oldRegularNumber = document.getElementById("regularNumber").textContent;
+      const oldPriorityNumber = document.getElementById("priorityNumber").textContent;
       
       // Update numbers
       document.getElementById("regularNumber").textContent = regularNumber;
@@ -188,6 +190,19 @@
         document.getElementById("priorityNumber").style.fontSize = "200px";
         priorityBox.style.display = "none";
       }
+      
+      // Play notification if numbers have changed
+      if (oldRegularNumber !== regularNumber || oldPriorityNumber !== priorityNumber) {
+        playNotification();
+      }
+    }
+    
+    function playNotification() {
+      // Create a new Audio instance each time to ensure it plays even when called in rapid succession
+      let sound = new Audio('sounds/notification.mp3');
+      sound.play().catch(error => {
+        console.error("Error playing notification sound:", error);
+      });
     }
 
     // Initial update

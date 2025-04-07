@@ -215,10 +215,11 @@
     // Update the iframe source with the current video ID
     function updateVideo() {
       const videoList = getVideoList();
-      if (videoList.length === 0) return;
-
-      const iframe = document.getElementById('youtubePlayer');
-      iframe.src = `https://www.youtube.com/embed/${videoList[0]}?playlist=${videoList.join(',')}&autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1`;
+      if (videoList.length > 0) {
+        const currentVideo = videoList[0];
+        const iframe = document.getElementById('youtubePlayer');
+        iframe.src = `https://www.youtube.com/embed/${currentVideo}?autoplay=1&mute=0&loop=1&playlist=${videoList.join(',')}&controls=0&showinfo=0&rel=0&modestbranding=1&volume=0.5`;
+      }
     }
 
     // Listen for changes

@@ -143,10 +143,10 @@
   <div class="container">
     <div class="video-section">
       <div class="video-container">
-        <div class="video-title">CENRO Brookes Point Video</div>
-        <iframe 
-          src="https://www.youtube.com/embed/ffuQyJKj4bM?playlist=ffuQyJKj4bM&autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1"
-          title="CENRO Brookes Point Video"
+        <div class="video-title">CENRO Brookes Point Videos</div>
+        <iframe id="youtubePlayer"
+          src=""
+          title="CENRO Brookes Point Videos"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
           allowfullscreen>
         </iframe>
@@ -181,7 +181,6 @@
       
       // Adjust font sizes based on priority number
       const priorityBox = document.querySelector('.priority-box');
-      const regularBox = document.querySelector('.number-box:not(.priority-box)');
       
       if (parseInt(priorityNumber) > 0) {
         // If there's a priority number, make it bigger
@@ -202,90 +201,38 @@
     }
     
     function playNotification() {
-      // Create a new Audio instance each time to ensure it plays even when called in rapid succession
       let sound = new Audio('sounds/notification.mp3');
       sound.play().catch(error => {
         console.error("Error playing notification sound:", error);
       });
     }
 
-    // Initial update
-    updateQueueNumbers();
-
-    // Listen for changes in queue numbers
-    window.addEventListener("storage", (e) => {
-      if (e.key === "regularNumber" || e.key === "priorityNumber") {
-        updateQueueNumbers();
-      }
-    });
-
-    // Video playlist functionality
-    const videoPlayer = document.getElementById("videoPlayer");
-    const videoTitle = document.getElementById("videoTitle");
-    
+    // Get video list from localStorage
     function getVideoList() {
       return JSON.parse(localStorage.getItem("videoList") || "[]");
     }
 
-    // Function to get video title without extension
-    function getVideoTitle(filename) {
-      return filename.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
-    }
-
-    // Initialize video playlist
-    let currentVideoIndex = 0;
-
-    function playNextVideo() {
+    // Update the iframe source with the current video ID
+    function updateVideo() {
       const videoList = getVideoList();
-      if (videoList.length === 0) {
-        videoTitle.textContent = "No videos available. Please add videos in the admin panel.";
-        return;
-      }
-      
-      const videoFile = videoList[currentVideoIndex];
-      const videoPath = `videos/${videoFile}`;
-      const title = getVideoTitle(videoFile);
-      
-      // Create a new source element
-      const source = document.createElement('source');
-      source.src = videoPath;
-      source.type = `video/${videoFile.split('.').pop().toLowerCase()}`;
-      
-      // Clear previous sources and add new one
-      videoPlayer.innerHTML = '';
-      videoPlayer.appendChild(source);
-      
-      videoTitle.textContent = title;
-      
-      // Ensure video plays
-      const playPromise = videoPlayer.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.error("Auto-play failed:", error);
-          // Try to play again after a short delay
-          setTimeout(() => videoPlayer.play(), 1000);
-        });
-      }
-      
-      currentVideoIndex = (currentVideoIndex + 1) % videoList.length;
+      if (videoList.length === 0) return;
+
+      const iframe = document.getElementById('youtubePlayer');
+      iframe.src = `https://www.youtube.com/embed/${videoList[0]}?playlist=${videoList.join(',')}&autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1`;
     }
 
-    // Handle video end and errors
-    videoPlayer.addEventListener("ended", playNextVideo);
-    videoPlayer.addEventListener("error", () => {
-      console.error("Video error occurred, trying next video");
-      playNextVideo();
-    });
-
-    // Listen for changes in video list
+    // Listen for changes
     window.addEventListener("storage", (e) => {
-      if (e.key === "videoList") {
-        playNextVideo();
+      if (e.key === "regularNumber" || e.key === "priorityNumber") {
+        updateQueueNumbers();
+      } else if (e.key === "videoList") {
+        updateVideo();
       }
     });
-    
-    // Start the video playlist
-    playNextVideo();
+
+    // Initialize
+    updateQueueNumbers();
+    updateVideo();
   </script>
 </body>
 </html>

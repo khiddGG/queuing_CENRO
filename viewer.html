@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Queue Viewer</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      padding: 20px;
+      background-color: #f0f0f0;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      margin-top: 100px; /* Add space below fixed header */
+      display: flex;
+      width: 100%;
+      max-width: 1600px;
+      gap: 20px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+    }
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      z-index: 1000;
+      box-sizing: border-box;
+      gap: 20px;
+    }
+    .logo-container {
+      width: 80px;
+      display: flex;
+      align-items: center;
+    }
+    .logo-container.left {
+      justify-content: flex-start;
+    }
+    .logo-container.right {
+      justify-content: flex-end;
+    }
+    .logo {
+      height: 60px;
+      width: auto;
+    }
+    h1 {
+      color: #333;
+      margin: 0;
+      font-size: 2vw;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .queue-display {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      flex: 1;
+      max-width: 600px;
+    }
+    .number-display {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .number-box {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+    .number-label {
+      font-size: 24px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    #regularNumber, #priorityNumber {
+      margin: 0;
+      line-height: 1;
+      transition: all 0.3s ease;
+    }
+    .priority-box {
+      background-color: #e6ffe6;
+      order: -1;
+    }
+    .priority-label {
+      color: #2ecc71;
+    }
+    .video-section {
+      flex: 1;
+      max-width: 800px;
+    }
+    .video-container {
+      background-color: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      aspect-ratio: 16/9;
+      position: relative;
+    }
+    .video-title {
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 10px 10px 0 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo-container left">
+      <img src="images/1.png" alt="Logo 1" class="logo">
+    </div>
+    <h1>CENRO BROOKES POINT Queuing System</h1>
+    <div class="logo-container right">
+      <img src="images/2.png" alt="Logo 2" class="logo">
+    </div>
+  </div>
+  <div class="container">
+    <div class="video-section">
+      <div class="video-container">
+        <div class="video-title" id="videoTitle">Loading video...</div>
+        <video id="videoPlayer" autoplay loop muted playsinline>
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+
+    <div class="queue-display">
+      <div class="number-display">
+        <div class="number-box priority-box">
+          <div class="number-label priority-label">Priority Number</div>
+          <div id="priorityNumber">0</div>
+        </div>
+        <div class="number-box">
+          <div class="number-label">Now Serving</div>
+          <div id="regularNumber">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Update queue numbers
+    function updateQueueNumbers() {
+      const regularNumber = localStorage.getItem("regularNumber") || 0;
+      const priorityNumber = localStorage.getItem("priorityNumber") || 0;
+      
+      // Update numbers
+      document.getElementById("regularNumber").textContent = regularNumber;
+      document.getElementById("priorityNumber").textContent = priorityNumber;
+      
+      // Adjust font sizes based on priority number
+      const priorityBox = document.querySelector('.priority-box');
+      const regularBox = document.querySelector('.number-box:not(.priority-box)');
+      
+      if (parseInt(priorityNumber) > 0) {
+        // If there's a priority number, make it bigger
+        document.getElementById("priorityNumber").style.fontSize = "250px";
+        document.getElementById("regularNumber").style.fontSize = "200px";
+        priorityBox.style.display = "block";
+      } else {
+        // If no priority number, make regular number bigger
+        document.getElementById("regularNumber").style.fontSize = "250px";
+        document.getElementById("priorityNumber").style.fontSize = "200px";
+        priorityBox.style.display = "none";
+      }
+    }
+
+    // Initial update
+    updateQueueNumbers();
+
+    // Listen for changes in queue numbers
+    window.addEventListener("storage", (e) => {
+      if (e.key === "regularNumber" || e.key === "priorityNumber") {
+        updateQueueNumbers();
+      }
+    });
+
+    // Video playlist functionality
+    const videoPlayer = document.getElementById("videoPlayer");
+    const videoTitle = document.getElementById("videoTitle");
+    
+    function getVideoList() {
+      return JSON.parse(localStorage.getItem("videoList") || "[]");
+    }
+
+    // Function to get video title without extension
+    function getVideoTitle(filename) {
+      return filename.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
+    }
+
+    // Initialize video playlist
+    let currentVideoIndex = 0;
+
+    function playNextVideo() {
+      const videoList = getVideoList();
+      if (videoList.length === 0) {
+        videoTitle.textContent = "No videos available. Please add videos in the admin panel.";
+        return;
+      }
+      
+      const videoFile = videoList[currentVideoIndex];
+      const videoPath = `videos/${videoFile}`;
+      const title = getVideoTitle(videoFile);
+      
+      // Create a new source element
+      const source = document.createElement('source');
+      source.src = videoPath;
+      source.type = `video/${videoFile.split('.').pop().toLowerCase()}`;
+      
+      // Clear previous sources and add new one
+      videoPlayer.innerHTML = '';
+      videoPlayer.appendChild(source);
+      
+      videoTitle.textContent = title;
+      
+      // Ensure video plays
+      const playPromise = videoPlayer.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error("Auto-play failed:", error);
+          // Try to play again after a short delay
+          setTimeout(() => videoPlayer.play(), 1000);
+        });
+      }
+      
+      currentVideoIndex = (currentVideoIndex + 1) % videoList.length;
+    }
+
+    // Handle video end and errors
+    videoPlayer.addEventListener("ended", playNextVideo);
+    videoPlayer.addEventListener("error", () => {
+      console.error("Video error occurred, trying next video");
+      playNextVideo();
+    });
+
+    // Listen for changes in video list
+    window.addEventListener("storage", (e) => {
+      if (e.key === "videoList") {
+        playNextVideo();
+      }
+    });
+    
+    // Start the video playlist
+    playNextVideo();
+  </script>
+</body>
+</html>
